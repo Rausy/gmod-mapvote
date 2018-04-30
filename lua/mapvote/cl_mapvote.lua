@@ -140,7 +140,7 @@ function PANEL:PerformLayout()
     local extra = math.Clamp(300, 0, ScrW() - 640)
     self.Canvas:StretchToParent(0, 0, 0, 0)
     self.Canvas:SetWide(640 + extra)
-    self.Canvas:SetTall(cy -60)
+    self.Canvas:SetTall(cy)
     self.Canvas:SetPos(0, 0)
     self.Canvas:CenterHorizontal()
     self.Canvas:SetZPos(0)
@@ -251,14 +251,28 @@ function PANEL:SetMaps(maps)
     self.mapList:Clear()
     
     for k, v in RandomPairs(maps) do
-        local button = vgui.Create("DButton", self.mapList)
-        button.ID = k
+        local BGPanel = vgui.Create("DPanel", self.mapList)
+
+		BGPanel:SetSize(128, 152)
+		BGPanel:SetPaintBackgroundEnabled( true )
+		BGPanel:SetBackgroundColor( Color(255, 255, 255, 0) )
+		
+		local image = vgui.Create("DImageButton", BGPanel)
+		local button = vgui.Create("DButton", BGPanel, "button")
+        image.ID = k
         button:SetText(v)
+		if file.Exists("download/maps/icons/"..v..".png", "MOD") then
+			image:SetImage("download/maps/icons/"..v..".png")
+		elseif file.Exists("maps/thumb/"..v..".png", "MOD") then
+			image:SetImage("maps/thumb/"..v..".png")
+		else
+			image:SetImage("maps/"..v..".png")
+		end
         
-        button.DoClick = function()
+        image.DoClick = function()
             net.Start("RAM_MapVoteUpdate")
                 net.WriteUInt(MapVote.UPDATE_VOTE, 3)
-                net.WriteUInt(button.ID, 32)
+                net.WriteUInt(image.ID, 32)
             net.SendToServer()
         end
         
@@ -277,6 +291,7 @@ function PANEL:SetMaps(maps)
         end
         
         button:SetTextColor(color_white)
+        image:SetContentAlignment(4)
         button:SetContentAlignment(4)
         button:SetTextInset(8, 0)
         button:SetFont("RAM_VoteFont")
@@ -285,10 +300,13 @@ function PANEL:SetMaps(maps)
         
         button:SetDrawBackground(false)
         button:SetTall(24)
-        button:SetWide(285 + (extra / 2))
+        button:SetWide(128)
+        button:SetPos(0, 128)
+		image:SetTall(128)
+        image:SetWide(128)
         button.NumVotes = 0
         
-        self.mapList:AddItem(button)
+        self.mapList:AddItem(BGPanel)
     end
 end
 
